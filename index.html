@@ -16,9 +16,12 @@
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             color: #e2e8f0;
             min-height: 100vh;
+            min-height: 100dvh;
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .bg-wrap {
             position: fixed;
@@ -26,6 +29,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             z-index: -2;
             overflow: hidden;
         }
@@ -47,6 +51,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             z-index: -1;
             pointer-events: none;
             opacity: 0.35;
@@ -280,6 +285,9 @@
             color: #94a3b8;
         }
         @media (max-width: 640px) {
+            #anime-bg {
+                object-position: center center;
+            }
             .site-title {
                 font-size: 2rem;
             }
@@ -294,17 +302,20 @@
             .content-panel {
                 padding: 1.5rem;
             }
+            .main-container {
+                padding: 1.5rem 1rem;
+            }
             .guestboard-bar {
                 padding: 1.5rem;
-                margin-left: 1rem;
-                margin-right: 1rem;
+                margin: 0 1rem 1.5rem;
+                width: auto;
             }
         }
     </style>
 </head>
 <body>
     <div class="bg-wrap">
-        <video id="anime-bg" autoplay muted loop playsinline>
+        <video id="anime-bg" autoplay muted loop playsinline webkit-playsinline preload="auto">
             <source src="background.mp4" type="video/mp4">
         </video>
         <div class="bg-overlay"></div>
@@ -378,10 +389,12 @@
         const canvas = document.getElementById('stars-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
+
         function createStars() {
             stars = [];
             const count = Math.floor((canvas.width * canvas.height) / 1200);
@@ -395,6 +408,7 @@
                 });
             }
         }
+
         function drawStars() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             stars.forEach(star => {
@@ -402,28 +416,35 @@
                 ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(180, 220, 255, ${star.opacity})`;
                 ctx.fill();
-
                 star.y -= star.speed;
                 if (star.y < 0) {
                     star.y = canvas.height;
                     star.x = Math.random() * canvas.width;
                 }
-
                 star.opacity += (Math.random() - 0.5) * 0.04;
                 star.opacity = Math.max(0.15, Math.min(0.5, star.opacity));
             });
             requestAnimationFrame(drawStars);
         }
+
         window.addEventListener('resize', () => {
             resizeCanvas();
             createStars();
         });
+
         resizeCanvas();
         createStars();
         drawStars();
 
+        const bgVideo = document.getElementById('anime-bg');
+        bgVideo.addEventListener('ended', () => {
+            bgVideo.currentTime = 0;
+            bgVideo.play();
+        });
+
         const typewriterText = "欢迎访问我的网站 祝你玩的开心";
         const typewriter = document.getElementById('typewriter');
+
         function startTypewriterOnce() {
             let charIndex = 0;
             typewriter.classList.add('typing');
@@ -438,22 +459,25 @@
             }
             type();
         }
+
         startTypewriterOnce();
 
         const navBtns = document.querySelectorAll('.nav-btn');
         const panels = document.querySelectorAll('.panel-item');
+
         function switchPanel(target) {
             navBtns.forEach(b => b.style.background = 'rgba(30, 41, 59, 0.55)');
             document.querySelector(`[data-panel="${target}"]`).style.background = 'rgba(99, 179, 237, 0.2)';
-
             panels.forEach(panel => panel.classList.remove('active'));
             document.getElementById(target).classList.add('active');
         }
+
         navBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 switchPanel(btn.dataset.panel);
             });
         });
+
         navBtns[0].style.background = 'rgba(99, 179, 237, 0.2)';
 
         const SB_URL = 'https://ygovrgozpjbbteigdpxq.supabase.co';
@@ -462,6 +486,7 @@
             'apikey': SB_KEY,
             'Content-Type': 'application/json'
         };
+
         const gbName = document.getElementById('gb-name');
         const gbContent = document.getElementById('gb-content');
         const gbList = document.getElementById('gb-list');
@@ -471,6 +496,7 @@
             const pad = n => String(n).padStart(2, '0');
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
+
         function renderMessages(msgs) {
             gbList.innerHTML = '';
             if (!msgs || msgs.length === 0) {
@@ -480,7 +506,6 @@
             msgs.forEach(m => {
                 const item = document.createElement('div');
                 item.className = 'gb-item';
-
                 const head = document.createElement('div');
                 head.className = 'gb-item-head';
                 const nameSpan = document.createElement('span');
@@ -491,16 +516,15 @@
                 timeSpan.textContent = formatTime(m.created_at);
                 head.appendChild(nameSpan);
                 head.appendChild(timeSpan);
-
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'gb-item-content';
                 contentDiv.textContent = m.content;
-
                 item.appendChild(head);
                 item.appendChild(contentDiv);
                 gbList.appendChild(item);
             });
         }
+
         async function loadMessages() {
             try {
                 const res = await fetch(`${SB_URL}/rest/v1/comments?select=name,content,created_at&order=created_at.desc&limit=50`, {
@@ -512,6 +536,7 @@
                 gbList.innerHTML = '<div class="gb-empty">留言加载失败，请检查网络</div>';
             }
         }
+
         document.getElementById('gb-submit').addEventListener('click', async () => {
             const name = gbName.value.trim() || '匿名小伙伴';
             const content = gbContent.value.trim();
@@ -531,11 +556,13 @@
                 alert('留言失败，请检查网络后重试');
             }
         });
+
         gbContent.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 document.getElementById('gb-submit').click();
             }
         });
+
         loadMessages();
 
         const START_DATE = new Date('2026-09-19T00:00:00+08:00');
