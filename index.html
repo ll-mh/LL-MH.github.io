@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>36刀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            color: #e2e8f0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .bg-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            z-index: -2;
+            overflow: hidden;
+        }
+        #anime-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center right;
+        }
+        .bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(10, 15, 30, 0.35), rgba(10, 15, 30, 0.72));
+            pointer-events: none;
+        }
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+        .main-container {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .avatar-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(99, 179, 237, 0.5);
+            animation: breathe 3s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(99, 179, 237, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(99, 179, 237, 0.6);
+            }
+        }
+        .site-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #63b3ed, #9f7aea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        .typewriter-box {
+            height: 2rem;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            color: #cbd5e1;
+        }
+        .typewriter-text {
+            display: inline-block;
+        }
+        .typewriter-text.typing {
+            border-right: 2px solid #63b3ed;
+            padding-right: 3px;
+            animation: blink 0.7s step-end infinite;
+        }
+        @keyframes blink {
+            50% {
+                border-color: transparent;
+            }
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-btn {
+            padding: 0.75rem 1.75rem;
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid rgba(99, 179, 237, 0.35);
+            border-radius: 8px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            backdrop-filter: blur(6px);
+        }
+        .nav-btn:hover {
+            background: rgba(99, 179, 237, 0.2);
+            border-color: rgba(99, 179, 237, 0.6);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 179, 237, 0.25);
+        }
+        .content-panel {
+            width: 100%;
+            max-width: 680px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            min-height: 220px;
+            transition: all 0.3s ease;
+        }
+        .panel-item {
+            display: none;
+            line-height: 1.8;
+            color: #e2e8f0;
+            animation: fadeIn 0.4s ease;
+        }
+        .panel-item.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #93c5fd;
+            margin-bottom: 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.25);
+        }
+        .about-block {
+            margin-bottom: 1.5rem;
+        }
+        .about-block:last-child {
+            margin-bottom: 0;
+        }
+        .contact-item {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        .contact-tip {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .gb-form input,
+        .gb-form textarea {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .gb-form input:focus,
+        .gb-form textarea:focus {
+            border-color: rgba(99, 179, 237, 0.6);
+        }
+        .gb-form textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        #gb-submit {
+            padding: 0.5rem 1.5rem;
+            background: rgba(99, 179, 237, 0.2);
+            border: 1px solid rgba(99, 179, 237, 0.4);
+            border-radius: 8px;
+            color: #93c5fd;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        #gb-submit:hover {
+            background: rgba(99, 179, 237, 0.35);
+            color: #fff;
+        }
+        .gb-list {
+            margin-top: 1.2rem;
+        }
+        .gb-item {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.6rem;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        .gb-item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+        .gb-item-name {
+            color: #93c5fd;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .gb-item-time {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+        .gb-item-content {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        .gb-empty {
+            text-align: center;
+            color: #64748b;
+            padding: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+        .guestboard-bar {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto 1.5rem;
+            padding: 1.5rem 2rem;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 1rem 2rem 2rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        @media (max-width: 640px) {
+            #anime-bg {
+                object-position: center center;
+            }
+            .site-title {
+                font-size: 2rem;
+            }
+            .avatar {
+                width: 110px;
+                height: 110px;
+            }
+            .nav-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.85rem;
+            }
+            .content-panel {
+                padding: 1.5rem;
+            }
+            .main-container {
+                padding: 1.5rem 1rem;
+            }
+            .guestboard-bar {
+                padding: 1.5rem;
+                margin: 0 1rem 1.5rem;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-wrap">
+        <video id="anime-bg" autoplay muted loop playsinline webkit-playsinline preload="auto">
+            <source src="background.mp4" type="video/mp4">
+        </video>
+        <div class="bg-overlay"></div>
+    </div>
+    <canvas id="stars-canvas"></canvas>
+    <div class="main-container">
+        <div class="avatar-box">
+            <img
+                src="https://bee-reg-ab.imagency.cn/mr/6340/26/ef3c4199f2bf999545e1a8a298f24e78.jpg"
+                alt="36刀"
+                class="avatar"
+            >
+        </div>
+        <h1 class="site-title">36刀</h1>
+        <div class="typewriter-box">
+            <span class="typewriter-text" id="typewriter"></span>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" data-panel="home">首页</button>
+            <button class="nav-btn" data-panel="about">关于我</button>
+            <button class="nav-btn" data-panel="contact">联系我</button>
+        </div>
+        <div class="content-panel">
+            <div class="panel-item active" id="home">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #f1f5f9;">欢迎来到我的个人网站</div>
+                    <div style="color: #cbd5e1; margin-bottom: 1rem;">热爱物联网与开源创作的初中生开发者</div>
+                    <div style="color: #e2e8f0;">祝你玩的开心</div>
+                </div>
+            </div>
+            <div class="panel-item" id="about">
+                <div class="about-block">
+                    <div class="section-title">关于我</div>
+                    <p>一名在校初中生。热衷于物联网创作，喜欢折腾硬件、搞机以及各种开源有趣的项目，享受从想法到落地的创造过程。</p>
+                </div>
+                <div class="about-block">
+                    <div class="section-title">学习经历</div>
+                    <p>初中阶段开始接触编程与硬件，从 Python 语言入门，逐步延伸到前端开发与物联网硬件开发</p>
+                </div>
+            </div>
+            <div class="panel-item" id="contact">
+                <div class="section-title">联系我</div>
+                <div class="contact-item">
+                    <span style="color: #cbd5e1;">邮箱：</span>17392829694@163.com
+                </div>
+                <div class="contact-item">
+                    <span style="color: #cbd5e1;">QQ：</span>2370541165
+                </div>
+                <div style="margin-top: 1rem; line-height: 1.6; color: #e2e8f0;">
+                    欢迎和我分享项目想法，或者随便聊聊都可以~
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="guestboard-bar">
+        <div class="section-title">留言板</div>
+        <p style="color:#94a3b8; font-size:0.88rem; margin-bottom:1rem;">留个脚印再走吧~ </p>
+        <div class="gb-form">
+            <input type="text" id="gb-name" placeholder="你的昵称" maxlength="12">
+            <textarea id="gb-content" placeholder="说点什么...（Ctrl+Enter 快捷提交）" maxlength="200"></textarea>
+            <button id="gb-submit">提交留言</button>
+        </div>
+        <div class="gb-list" id="gb-list"></div>
+    </div>
+    <div class="footer">
+        <div style="margin-bottom: 0.3rem;">技术支持：36刀 天使兔痕</div>
+        <div style="margin-bottom: 0.3rem;">本站已运行 <span id="run-days">0</span> 天</div>
+        © 2026 36刀 · 个人学习项目 非商业用途
+    </div>
+    <script>
+        const canvas = document.getElementById('stars-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createStars() {
+            stars = [];
+            const count = Math.floor((canvas.width * canvas.height) / 1200);
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.2 + 0.3,
+                    speed: Math.random() * 0.2 + 0.05,
+                    opacity: Math.random() * 0.4 + 0.2
+                });
+            }
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(180, 220, 255, ${star.opacity})`;
+                ctx.fill();
+                star.y -= star.speed;
+                if (star.y < 0) {
+                    star.y = canvas.height;
+                    star.x = Math.random() * canvas.width;
+                }
+                star.opacity += (Math.random() - 0.5) * 0.04;
+                star.opacity = Math.max(0.15, Math.min(0.5, star.opacity));
+            });
+            requestAnimationFrame(drawStars);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            createStars();
+        });
+
+        resizeCanvas();
+        createStars();
+        drawStars();
+
+        const bgVideo = document.getElementById('anime-bg');
+        bgVideo.addEventListener('ended', () => {
+            bgVideo.currentTime = 0;
+            bgVideo.play();
+        });
+
+        const typewriterText = "欢迎访问我的网站 祝你玩的开心";
+        const typewriter = document.getElementById('typewriter');
+
+        function startTypewriterOnce() {
+            let charIndex = 0;
+            typewriter.classList.add('typing');
+            function type() {
+                if (charIndex < typewriterText.length) {
+                    typewriter.textContent = typewriterText.substring(0, charIndex + 1);
+                    charIndex++;
+                    setTimeout(type, 120);
+                } else {
+                    typewriter.classList.remove('typing');
+                }
+            }
+            type();
+        }
+
+        startTypewriterOnce();
+
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const panels = document.querySelectorAll('.panel-item');
+
+        function switchPanel(target) {
+            navBtns.forEach(b => b.style.background = 'rgba(30, 41, 59, 0.55)');
+            document.querySelector(`[data-panel="${target}"]`).style.background = 'rgba(99, 179, 237, 0.2)';
+            panels.forEach(panel => panel.classList.remove('active'));
+            document.getElementById(target).classList.add('active');
+        }
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchPanel(btn.dataset.panel);
+            });
+        });
+
+        navBtns[0].style.background = 'rgba(99, 179, 237, 0.2)';
+
+        const SB_URL = 'https://ygovrgozpjbbteigdpxq.supabase.co';
+        const SB_KEY = 'sb_publishable_PlC1rVP6rjKY-ERzrBEMYg_rqyF3H_E';
+        const sbHeaders = {
+            'apikey': SB_KEY,
+            'Content-Type': 'application/json'
+        };
+
+        const gbName = document.getElementById('gb-name');
+        const gbContent = document.getElementById('gb-content');
+        const gbList = document.getElementById('gb-list');
+
+        function formatTime(ts) {
+            const d = new Date(ts);
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function renderMessages(msgs) {
+            gbList.innerHTML = '';
+            if (!msgs || msgs.length === 0) {
+                gbList.innerHTML = '<div class="gb-empty">还没有留言，来做第一个吧~</div>';
+                return;
+            }
+            msgs.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'gb-item';
+                const head = document.createElement('div');
+                head.className = 'gb-item-head';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'gb-item-name';
+                nameSpan.textContent = m.name;
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'gb-item-time';
+                timeSpan.textContent = formatTime(m.created_at);
+                head.appendChild(nameSpan);
+                head.appendChild(timeSpan);
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'gb-item-content';
+                contentDiv.textContent = m.content;
+                item.appendChild(head);
+                item.appendChild(contentDiv);
+                gbList.appendChild(item);
+            });
+        }
+
+        async function loadMessages() {
+            try {
+                const res = await fetch(`${SB_URL}/rest/v1/comments?select=name,content,created_at&order=created_at.desc&limit=50`, {
+                    headers: sbHeaders
+                });
+                const msgs = await res.json();
+                renderMessages(msgs);
+            } catch (e) {
+                gbList.innerHTML = '<div class="gb-empty">留言加载失败，请检查网络</div>';
+            }
+        }
+
+        document.getElementById('gb-submit').addEventListener('click', async () => {
+            const name = gbName.value.trim() || '匿名小伙伴';
+            const content = gbContent.value.trim();
+            if (!content) {
+                alert('留言内容不能为空哦~');
+                return;
+            }
+            try {
+                await fetch(`${SB_URL}/rest/v1/comments`, {
+                    method: 'POST',
+                    headers: sbHeaders,
+                    body: JSON.stringify({ name: name, content: content })
+                });
+                gbContent.value = '';
+                loadMessages();
+            } catch (e) {
+                alert('留言失败，请检查网络后重试');
+            }
+        });
+
+        gbContent.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                document.getElementById('gb-submit').click();
+            }
+        });
+
+        loadMessages();
+
+        const START_DATE = new Date('2026-09-19T00:00:00+08:00');
+        function updateRunDays() {
+            const now = new Date();
+            const diff = now - START_DATE;
+            const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+            document.getElementById('run-days').textContent = days;
+        }
+        updateRunDays();
+    </script>
+</body>
+</html>
