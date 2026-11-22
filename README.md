@@ -1,2 +1,3 @@
-# LL-MH.github.io
+# 初中生的个人网站
 因租不起服务器所以才部署在github
+ai辅助仅用于界面ui 
